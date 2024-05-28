@@ -1,7 +1,15 @@
 import { Box, Button, Container, Flex, Heading, HStack, IconButton, Image, Link, Stack, Text, VStack } from "@chakra-ui/react";
 import { FaFacebook, FaTwitter, FaInstagram } from "react-icons/fa";
+import { useEffect, useState } from "react";
 
 const Index = () => {
+  const [events, setEvents] = useState([]);
+
+  useEffect(() => {
+    const storedEvents = JSON.parse(localStorage.getItem("events")) || [];
+    setEvents(storedEvents);
+  }, []);
+
   return (
     <Box>
       {/* Navigation Bar */}
@@ -9,7 +17,7 @@ const Index = () => {
         <Heading size="md">EventManager</Heading>
         <HStack spacing={8}>
           <Link href="/">Home</Link>
-          <Link href="/events">Events</Link>
+          <Link href="/create-event">Create Event</Link>
           <Link href="/contact">Contact</Link>
         </HStack>
       </Flex>
@@ -25,18 +33,14 @@ const Index = () => {
       <Container maxW="container.lg" py={10}>
         <Heading size="xl" mb={6} textAlign="center">Upcoming Events</Heading>
         <Stack spacing={8}>
-          <Box p={5} shadow="md" borderWidth="1px">
-            <Heading fontSize="xl">Event One</Heading>
-            <Text mt={4}>Details about Event One.</Text>
-          </Box>
-          <Box p={5} shadow="md" borderWidth="1px">
-            <Heading fontSize="xl">Event Two</Heading>
-            <Text mt={4}>Details about Event Two.</Text>
-          </Box>
-          <Box p={5} shadow="md" borderWidth="1px">
-            <Heading fontSize="xl">Event Three</Heading>
-            <Text mt={4}>Details about Event Three.</Text>
-          </Box>
+          {events.map((event, index) => (
+            <Box key={index} p={5} shadow="md" borderWidth="1px">
+              <Heading fontSize="xl">{event.name}</Heading>
+              <Text mt={4}>{event.date}</Text>
+              <Text mt={4}>{event.location}</Text>
+              <Text mt={4}>{event.description}</Text>
+            </Box>
+          ))}
         </Stack>
       </Container>
 
