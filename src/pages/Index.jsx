@@ -1,14 +1,47 @@
-import { Box, Button, Container, Flex, Heading, HStack, IconButton, Image, Link, Stack, Text, VStack } from "@chakra-ui/react";
+import { Box, Button, Container, Flex, Heading, HStack, IconButton, Image, Link, Stack, Text, VStack, FormControl, FormLabel, Input, useToast } from "@chakra-ui/react";
 import { FaFacebook, FaTwitter, FaInstagram } from "react-icons/fa";
 import { useEffect, useState } from "react";
 
 const Index = () => {
   const [events, setEvents] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [isBooking, setIsBooking] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [numTickets, setNumTickets] = useState(1);
+  const toast = useToast();
 
   useEffect(() => {
     const storedEvents = JSON.parse(localStorage.getItem("events")) || [];
     setEvents(storedEvents);
   }, []);
+
+  const handleBookTickets = (event) => {
+    setSelectedEvent(event);
+    setIsBooking(true);
+  };
+
+  const handleBookingSubmit = (e) => {
+    e.preventDefault();
+    const updatedEvents = events.map((event) => {
+      if (event === selectedEvent) {
+        const bookedTickets = event.bookedTickets || [];
+        bookedTickets.push({ name, email, numTickets });
+        return { ...event, bookedTickets };
+      }
+      return event;
+    });
+    localStorage.setItem("events", JSON.stringify(updatedEvents));
+    setEvents(updatedEvents);
+    setIsBooking(false);
+    toast({
+      title: "Booking Confirmed",
+      description: `You have successfully booked ${numTickets} tickets for ${selectedEvent.name}.`,
+      status: "success",
+      duration: 5000,
+      isClosable: true,
+    });
+  };
 
   return (
     <Box>
@@ -39,10 +72,43 @@ const Index = () => {
               <Text mt={4}>{event.date}</Text>
               <Text mt={4}>{event.location}</Text>
               <Text mt={4}>{event.description}</Text>
+              <Button mt={4} colorScheme="teal" onClick={() => handleBookTickets(event)}>Book Tickets</Button>
+              {event.bookedTickets && (
+                <Box mt={4}>
+                  <Heading size="md">Booked Tickets</Heading>
+                  {event.bookedTickets.map((ticket, idx) => (
+                    <Text key={idx}>{ticket.name} - {ticket.numTickets} tickets</Text>
+                  ))}
+                </Box>
+              )}
             </Box>
           ))}
         </Stack>
       </Container>
+
+      {/* Booking Form */}
+      {isBooking && (
+        <Container maxW="container.md" py={10}>
+          <Heading size="xl" mb={6} textAlign="center">Book Tickets for {selectedEvent.name}</Heading>
+          <Box as="form" onSubmit={handleBookingSubmit}>
+            <VStack spacing={4}>
+              <FormControl id="name" isRequired>
+                <FormLabel>Name</FormLabel>
+                <Input value={name} onChange={(e) => setName(e.target.value)} />
+              </FormControl>
+              <FormControl id="email" isRequired>
+                <FormLabel>Email</FormLabel>
+                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              </FormControl>
+              <FormControl id="numTickets" isRequired>
+                <FormLabel>Number of Tickets</FormLabel>
+                <Input type="number" value={numTickets} onChange={(e) => setNumTickets(e.target.value)} min={1} />
+              </FormControl>
+              <Button type="submit" colorScheme="teal" size="lg" width="full">Confirm Booking</Button>
+            </VStack>
+          </Box>
+        </Container>
+      )}
 
       {/* Footer */}
       <Box bg="blue.600" color="white" py={10}>
